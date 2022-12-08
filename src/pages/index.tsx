@@ -1,24 +1,12 @@
+import { type NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
-import { trpc } from "@/utils/trpc";
+import React from "react";
 
 // components import
 import Navbar from "@/components/Navbar";
 import TodoList from "@/components/TodoList";
 
-// types import
-import { type NextPage } from "next";
-import { type Todo } from "@prisma/client";
-
 const Home: NextPage = () => {
-  const [todos, setTodos] = useState<Todo[]>([]);
-
-  const test = trpc.todo.addTodo.useMutation({
-    onSuccess: (todo) => {
-      setTodos((prev) => [...prev, todo]);
-    },
-  });
-
   return (
     <>
       <Head>
@@ -27,8 +15,8 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Navbar />
-      <main className="min-h-screen pt-24">
-        <TodoList todos={todos} />
+      <main className="min-h-screen pt-24 pb-14">
+        <TodoList />
       </main>
     </>
   );

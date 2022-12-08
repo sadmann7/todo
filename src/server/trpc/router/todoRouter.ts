@@ -9,7 +9,6 @@ export const todoRouter = router({
       const { label } = input;
 
       const userId = session.user.id;
-
       return prisma.todo.create({
         data: {
           label,
@@ -21,4 +20,8 @@ export const todoRouter = router({
         },
       });
     }),
+
+  getAllTodos: protectedProcedure.query(({ ctx }) => {
+    return ctx.prisma.todo.findMany();
+  }),
 });

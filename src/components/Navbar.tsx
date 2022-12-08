@@ -18,7 +18,7 @@ const Navbar = () => {
   return (
     <nav
       aria-label="navbar"
-      className="fixed top-0 left-0 w-full gap-4 bg-violet-500 py-2"
+      className="fixed top-0 left-0 flex w-full items-center gap-4 bg-violet-500 py-2"
     >
       <div className="mx-auto flex w-[89vw] max-w-screen-xl items-center justify-between">
         <Link
@@ -30,12 +30,13 @@ const Navbar = () => {
         </Link>
         {sessionData?.user ? (
           <Menu as="div" className="relative inline-block">
-            <Menu.Button className="overflow-hidden rounded-full ring-2 ring-white/75 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
+            <Menu.Button className="rounded-full ring-2 ring-white/75 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
               <Image
                 src={sessionData.user.image as string}
                 alt={sessionData.user.name as string}
                 width={32}
                 height={32}
+                className="rounded-full"
               />
             </Menu.Button>
             <Transition
@@ -47,13 +48,13 @@ const Navbar = () => {
               leaveFrom="transform opacity-100 scale-100"
               leaveTo="transform opacity-0 scale-95"
             >
-              <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white p-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+              <Menu.Items className="absolute right-0 mt-1 w-40 origin-top-right rounded-md bg-gray-600 p-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none md:text-sm">
                 <Menu.Item>
                   {({ active }) => (
                     <button
                       className={`${
-                        active ? "bg-violet-500 text-white" : "text-gray-900"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                        active ? "bg-black/20" : "bg-transparent"
+                      } group flex w-full items-center rounded-md px-2 py-2`}
                     >
                       <UserCircleIcon
                         className="mr-2 h-5 w-5"
@@ -67,8 +68,8 @@ const Navbar = () => {
                   {({ active }) => (
                     <button
                       className={`${
-                        active ? "bg-violet-500 text-white" : "text-gray-900"
-                      } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                        active ? "bg-black/20" : "bg-transparent"
+                      } group flex w-full items-center rounded-md px-2 py-2`}
                       onClick={() => signOut()}
                     >
                       <ArrowLeftOnRectangleIcon
