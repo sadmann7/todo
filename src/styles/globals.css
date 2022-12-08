@@ -7,6 +7,6 @@
     @apply scroll-smooth;
   }
   body {
-    @apply bg-black text-white;
+    @apply bg-gradient-to-b from-slate-800 to-gray-900 text-white;
   }
 }
