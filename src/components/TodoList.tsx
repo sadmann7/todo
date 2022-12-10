@@ -6,6 +6,8 @@ import {
 } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { type Todo } from "@prisma/client";
+import { toast } from "react-toastify";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 // images import
 import {
@@ -20,6 +22,7 @@ type Inputs = {
 };
 
 const TodoList = () => {
+  // trpc
   const [todos, setTodos] = useState<Todo[]>([]);
   const { data, status } = trpc.todo.getAllTodos.useQuery();
   useEffect(() => {
@@ -32,6 +35,7 @@ const TodoList = () => {
     },
   });
 
+  // React-hook-form
   const [showInput, setShowInput] = useState(false);
   const {
     register,
@@ -43,6 +47,7 @@ const TodoList = () => {
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     console.log(data);
     addTodo({ label: data.todo });
+    toast.success("Todo added.");
     setShowInput(false);
     reset();
   };
@@ -50,15 +55,30 @@ const TodoList = () => {
     setFocus("todo");
   }, [setFocus, showInput]);
 
+  // AutoAnimate
+  const [todosRef] = useAutoAnimate<HTMLDivElement>();
+  const [formRef] = useAutoAnimate<HTMLFormElement>();
+
   return (
     <section
-      className="mx-auto flex w-[89vw] max-w-screen-sm flex-col"
       aria-label="todo wrapper"
+      className="mx-auto flex w-[89vw] max-w-screen-sm flex-col"
     >
-      <h1 className="text-center text-xl md:text-2xl">Todos</h1>
+      {status === "loading" ? (
+        <p className="mt-5 text-sm md:text-base">Loading todos...</p>
+      ) : (
+        <div className="mt-5 grid gap-5" ref={todosRef}>
+          {todos?.map((todo) => (
+            <Fragment key={todo.id}>
+              <TodoItem register={register} todo={todo} />
+            </Fragment>
+          ))}
+        </div>
+      )}
       <form
         aria-label="todo_form"
         className="mt-5"
+        ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
       >
         {showInput ? (
@@ -66,6 +86,7 @@ const TodoList = () => {
             <input
               id="todo"
               type="text"
+              placeholder="Type todo..."
               className="w-full rounded-md bg-black/50 px-4"
               {...register("todo", { required: true })}
             />
@@ -107,18 +128,6 @@ const TodoList = () => {
           </div>
         )}
       </form>
-
-      {status === "loading" ? (
-        <p className="mt-5 text-sm md:text-base">Loading todos...</p>
-      ) : (
-        <div className="mt-5 grid gap-5">
-          {todos?.map((todo) => (
-            <Fragment key={todo.id}>
-              <TodoItem register={register} todo={todo} />
-            </Fragment>
-          ))}
-        </div>
-      )}
     </section>
   );
 };
@@ -154,12 +163,12 @@ const TodoItem = ({
           <PencilSquareIcon
             role="button"
             aria-label="edit todo"
-            className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300"
+            className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300 active:text-gray-400"
           />
           <TrashIcon
             role="button"
             aria-label="delete todo"
-            className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300"
+            className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300 active:text-gray-400"
           />
         </div>
       )}

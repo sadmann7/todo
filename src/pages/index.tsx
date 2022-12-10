@@ -5,8 +5,21 @@ import React from "react";
 // components import
 import Navbar from "@/components/Navbar";
 import TodoList from "@/components/TodoList";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 const Home: NextPage = () => {
+  const { status } = useSession();
+  const router = useRouter();
+
+  if (status === "loading") {
+    return <p className="text-sm md:text-base">Loading...</p>;
+  }
+
+  if (status === "unauthenticated") {
+    router.push("/api/auth/callback/discord");
+  }
+
   return (
     <>
       <Head>
@@ -15,7 +28,7 @@ const Home: NextPage = () => {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <Navbar />
-      <main className="min-h-screen pt-24 pb-14">
+      <main className="min-h-screen pt-20 pb-14">
         <TodoList />
       </main>
     </>

@@ -13,12 +13,12 @@ import {
 import Link from "next/link";
 
 const Navbar = () => {
-  const { data: sessionData } = useSession();
+  const { data: session } = useSession();
 
   return (
     <nav
       aria-label="navbar"
-      className="fixed top-0 left-0 flex w-full items-center gap-4 bg-violet-500 py-2"
+      className="fixed top-0 left-0 z-20 flex w-full items-center gap-4 bg-violet-500 py-2"
     >
       <div className="mx-auto flex w-[89vw] max-w-screen-xl items-center justify-between">
         <Link
@@ -28,12 +28,12 @@ const Navbar = () => {
           <CheckBadgeIcon className="aspect-square w-5" aria-hidden="true" />
           Todo
         </Link>
-        {sessionData?.user ? (
+        {session?.user ? (
           <Menu as="div" className="relative inline-block">
             <Menu.Button className="rounded-full ring-2 ring-white/75 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
               <Image
-                src={sessionData.user.image as string}
-                alt={sessionData.user.name as string}
+                src={session.user.image as string}
+                alt={session.user.name as string}
                 width={32}
                 height={32}
                 className="rounded-full"
@@ -60,7 +60,7 @@ const Navbar = () => {
                         className="mr-2 h-5 w-5"
                         aria-hidden="true"
                       />
-                      {sessionData?.user?.name}
+                      {session?.user?.name}
                     </button>
                   )}
                 </Menu.Item>
