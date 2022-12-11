@@ -21,7 +21,37 @@ export const todoRouter = router({
       });
     }),
 
+  deleteTodo: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(({ ctx, input }) => {
+      const { prisma } = ctx;
+      const { id } = input;
+
+      return prisma.todo.delete({
+        where: {
+          id,
+        },
+      });
+    }),
+
+  toggleTodo: protectedProcedure
+    .input(z.object({ id: z.string(), checked: z.boolean() }))
+    .mutation(({ ctx, input }) => {
+      const { prisma } = ctx;
+      const { id, checked } = input;
+
+      return prisma.todo.update({
+        where: {
+          id,
+        },
+        data: {
+          checked,
+        },
+      });
+    }),
+
   getAllTodos: protectedProcedure.query(({ ctx }) => {
-    return ctx.prisma.todo.findMany();
+    const { prisma } = ctx;
+    return prisma.todo.findMany();
   }),
 });

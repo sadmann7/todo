@@ -1,9 +1,5 @@
 import { Fragment, useEffect, useState } from "react";
-import {
-  useForm,
-  type SubmitHandler,
-  type UseFormRegister,
-} from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { type Todo } from "@prisma/client";
 import { toast } from "react-toastify";
@@ -24,14 +20,45 @@ type Inputs = {
 const TodoList = () => {
   // trpc
   const [todos, setTodos] = useState<Todo[]>([]);
-  const { data, status } = trpc.todo.getAllTodos.useQuery();
+  const [checkedTodos, setCheckedTodos] = useState<Todo[]>([]);
+
+  const { data: allTodos, status } = trpc.todo.getAllTodos.useQuery();
   useEffect(() => {
-    if (!data) return;
-    setTodos(data);
-  }, [data]);
+    if (!allTodos) return;
+    setTodos(allTodos);
+
+    const checkedItems = allTodos.filter((todo) => todo.checked);
+    setCheckedTodos(checkedItems);
+  }, [allTodos]);
+
   const { mutate: addTodo } = trpc.todo.addTodo.useMutation({
     onSuccess: (todo) => {
-      setTodos((prev) => [...prev, todo]);
+      setTodos([...todos, todo]);
+      toast.success("Todo added.");
+    },
+  });
+
+  const { mutate: deleteTodo } = trpc.todo.deleteTodo.useMutation({
+    onSuccess: (todo) => {
+      const newTodos = todos.filter((item) => item.id !== todo.id);
+      setTodos(newTodos);
+      toast.success("Todo deleted.");
+    },
+  });
+
+  const { mutate: toggleTodo } = trpc.todo.toggleTodo.useMutation({
+    onSuccess: (todo) => {
+      // check if the todo is already checked
+      if (checkedTodos.some((item) => item.id === todo.id)) {
+        // remove the todo from the checkedTodos
+        const newTodos = todos.filter((item) => item.id !== todo.id);
+        setCheckedTodos(newTodos);
+        // toast.success("Todo unchecked.");
+      } else {
+        // add it to the checked todos
+        setCheckedTodos([...todos, todo]);
+        // toast.success("Todo checked.");
+      }
     },
   });
 
@@ -47,7 +74,6 @@ const TodoList = () => {
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     console.log(data);
     addTodo({ label: data.todo });
-    toast.success("Todo added.");
     setShowInput(false);
     reset();
   };
@@ -70,7 +96,12 @@ const TodoList = () => {
         <div className="mt-5 grid gap-5" ref={todosRef}>
           {todos?.map((todo) => (
             <Fragment key={todo.id}>
-              <TodoItem register={register} todo={todo} />
+              <TodoItem
+                todo={todo}
+                deleteTodo={deleteTodo}
+                checkedTodos={checkedTodos}
+                toggleTodo={toggleTodo}
+              />
             </Fragment>
           ))}
         </div>
@@ -134,13 +165,19 @@ const TodoList = () => {
 
 export default TodoList;
 
-const TodoItem = ({
-  register,
-  todo,
-}: {
-  register: UseFormRegister<Inputs>;
+type TodoItemProps = {
   todo: Todo;
-}) => {
+  deleteTodo: ({ id }: { id: string }) => void;
+  checkedTodos: Todo[];
+  toggleTodo: ({ id, checked }: { id: string; checked: boolean }) => void;
+};
+
+const TodoItem = ({
+  todo,
+  deleteTodo,
+  checkedTodos,
+  toggleTodo,
+}: TodoItemProps) => {
   const [isHoverd, setIsHoverd] = useState(false);
 
   return (
@@ -151,12 +188,26 @@ const TodoItem = ({
     >
       <div className="flex items-center gap-5">
         <input
+          aria-label="check todo"
           id="progress"
           type="checkbox"
-          className="focus:ring-none rounded-full border-2 bg-transparent"
-          {...register("progress", { required: false })}
+          className="focus:ring-none cursor-pointer rounded-full border-2 bg-transparent"
+          onChange={() =>
+            toggleTodo({
+              id: todo.id,
+              checked: checkedTodos.some((item) => item.id === todo.id)
+                ? false
+                : true,
+            })
+          }
         />
-        <p className="text-xs line-clamp-1 md:text-sm">{todo.label}</p>
+        <p
+          className={`${
+            todo.checked && "line-through"
+          } text-xs line-clamp-1 md:text-sm`}
+        >
+          {todo.label}
+        </p>
       </div>
       {isHoverd && (
         <div className="flex items-center gap-2">
@@ -169,6 +220,7 @@ const TodoItem = ({
             role="button"
             aria-label="delete todo"
             className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300 active:text-gray-400"
+            onClick={() => deleteTodo({ id: todo.id })}
           />
         </div>
       )}
