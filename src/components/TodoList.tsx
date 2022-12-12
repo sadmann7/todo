@@ -38,15 +38,6 @@ const TodoList = () => {
     },
   });
 
-  const { mutateAsync: deleteTodo } = trpc.todo.delete.useMutation({
-    onMutate: async (todo) => {
-      await utils.todo.all.cancel();
-      const newTodos = todos.filter((item) => item.id !== todo.id);
-      setTodos(newTodos);
-      toast.success("Todo deleted.");
-    },
-  });
-
   const { mutateAsync: deleteCompletedTodos } =
     trpc.todo.deleteCompleted.useMutation({
       onMutate: async () => {
@@ -88,20 +79,40 @@ const TodoList = () => {
   const [todosRef] = useAutoAnimate<HTMLUListElement>();
   const [formRef] = useAutoAnimate<HTMLFormElement>();
 
-  // AddTodo keyboard shortcut
+  // Toggle ShowInput via keyboard shortcut
+  useEffect(() => {
+    const toggleInput = (e: KeyboardEvent) => {
+      e.preventDefault();
+      if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+        setShowInput(!showInput);
+      }
+      if (e.key === "Escape") {
+        setShowInput(false);
+      }
+    };
+    document.addEventListener("keydown", toggleInput);
+    return () => document.removeEventListener("keydown", toggleInput);
+  }, [showInput]);
 
   return (
     <section
       aria-label="todo wrapper"
       className="mx-auto flex w-[89vw] max-w-screen-sm flex-col"
     >
+      <p className="text-center text-sm font-semibold italic md:text-base">
+        Press{" "}
+        <span className="text-red-400">
+          {"Ctrl"} + {"k"}
+        </span>{" "}
+        to add todo
+      </p>
       {status === "loading" ? (
         <p className="mt-5 text-sm md:text-base">Loading todos...</p>
       ) : (
         <ul className="mt-5 grid gap-5" ref={todosRef}>
           {todos?.map((todo) => (
             <Fragment key={todo.id}>
-              <TodoItem todo={todo} deleteTodo={deleteTodo} />
+              <TodoItem todo={todo} />
             </Fragment>
           ))}
         </ul>
@@ -182,16 +193,16 @@ export default TodoList;
 
 type TodoItemProps = {
   todo: Todo;
-  deleteTodo: ({ id }: { id: string }) => void;
 };
 
-const TodoItem = ({ todo, deleteTodo }: TodoItemProps) => {
+const TodoItem = ({ todo }: TodoItemProps) => {
   const [isHoverd, setIsHoverd] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [todoLabel, setTodoLabel] = useState(todo.label);
 
   // trpc
   const utils = trpc.useContext();
+
   const { mutateAsync: editTodo } = trpc.todo.edit.useMutation({
     onMutate: async ({ id, data }) => {
       await utils.todo.all.cancel();
@@ -209,6 +220,17 @@ const TodoItem = ({ todo, deleteTodo }: TodoItemProps) => {
         )
       );
       toast.success("Todo updated.");
+    },
+  });
+
+  const { mutateAsync: deleteTodo } = trpc.todo.delete.useMutation({
+    onMutate: async ({ id }) => {
+      await utils.todo.all.cancel();
+      const allTodos = utils.todo.all.getData();
+      if (!allTodos) return;
+      const newTodos = allTodos.filter((todo) => todo.id !== id);
+      utils.todo.all.setData(undefined, newTodos);
+      toast.success("Todo deleted.");
     },
   });
 
