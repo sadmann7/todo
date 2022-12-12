@@ -44,7 +44,7 @@ const TodoList = () => {
         await utils.todo.all.cancel();
         const newTodos = todos.filter((todo) => !todo.completed);
         setTodos(newTodos);
-        toast.success("Completed todos cleared.");
+        toast.success("Completed todos deleted.");
       },
     });
 
@@ -81,17 +81,17 @@ const TodoList = () => {
 
   // Toggle ShowInput via keyboard shortcut
   useEffect(() => {
-    const toggleInput = (e: KeyboardEvent) => {
-      e.preventDefault();
-      if (e.key === "k" && (e.ctrlKey || e.metaKey)) {
+    const handleKeydown = (e: KeyboardEvent) => {
+      if (e.key === "a" && e.altKey && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
         setShowInput(!showInput);
       }
       if (e.key === "Escape") {
         setShowInput(false);
       }
     };
-    document.addEventListener("keydown", toggleInput);
-    return () => document.removeEventListener("keydown", toggleInput);
+    document.addEventListener("keydown", handleKeydown);
+    return () => document.removeEventListener("keydown", handleKeydown);
   }, [showInput]);
 
   return (
@@ -102,7 +102,7 @@ const TodoList = () => {
       <p className="text-center text-sm font-semibold italic md:text-base">
         Press{" "}
         <span className="text-red-400">
-          {"Ctrl"} + {"k"}
+          {"Ctrl"} + {"Alt"} + {"A"}
         </span>{" "}
         to add todo
       </p>
