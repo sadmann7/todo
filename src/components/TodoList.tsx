@@ -3,6 +3,7 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { trpc } from "@/utils/trpc";
 import { type Todo } from "@prisma/client";
 import { toast } from "react-toastify";
+import { useIsMutating } from "@tanstack/react-query";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
 // images import
@@ -14,53 +15,55 @@ import {
 
 type Inputs = {
   todo: string;
-  progress: boolean;
 };
 
 const TodoList = () => {
   // trpc
+  const utils = trpc.useContext();
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [checkedTodos, setCheckedTodos] = useState<Todo[]>([]);
 
-  const { data: allTodos, status } = trpc.todo.getAllTodos.useQuery();
+  const { data: allTodos, status } = trpc.todo.all.useQuery(undefined, {
+    staleTime: 3000,
+  });
   useEffect(() => {
     if (!allTodos) return;
     setTodos(allTodos);
-
-    const checkedItems = allTodos.filter((todo) => todo.checked);
-    setCheckedTodos(checkedItems);
   }, [allTodos]);
 
-  const { mutate: addTodo } = trpc.todo.addTodo.useMutation({
-    onSuccess: (todo) => {
+  const { mutateAsync: addTodo } = trpc.todo.add.useMutation({
+    onSuccess: async (todo) => {
+      await utils.todo.all.cancel();
       setTodos([...todos, todo]);
       toast.success("Todo added.");
     },
   });
 
-  const { mutate: deleteTodo } = trpc.todo.deleteTodo.useMutation({
-    onSuccess: (todo) => {
+  const { mutateAsync: deleteTodo } = trpc.todo.delete.useMutation({
+    onMutate: async (todo) => {
+      await utils.todo.all.cancel();
       const newTodos = todos.filter((item) => item.id !== todo.id);
       setTodos(newTodos);
       toast.success("Todo deleted.");
     },
   });
 
-  const { mutate: toggleTodo } = trpc.todo.toggleTodo.useMutation({
-    onSuccess: (todo) => {
-      // check if the todo is already checked
-      if (checkedTodos.some((item) => item.id === todo.id)) {
-        // remove the todo from the checkedTodos
-        const newTodos = todos.filter((item) => item.id !== todo.id);
-        setCheckedTodos(newTodos);
-        // toast.success("Todo unchecked.");
-      } else {
-        // add it to the checked todos
-        setCheckedTodos([...todos, todo]);
-        // toast.success("Todo checked.");
-      }
-    },
-  });
+  const { mutateAsync: deleteCompletedTodos } =
+    trpc.todo.deleteCompleted.useMutation({
+      onMutate: async () => {
+        await utils.todo.all.cancel();
+        const newTodos = todos.filter((todo) => !todo.completed);
+        setTodos(newTodos);
+        toast.success("Completed todos cleared.");
+      },
+    });
+
+  // Refetch todos
+  const number = useIsMutating();
+  useEffect(() => {
+    if (number === 0) {
+      utils.todo.all.invalidate();
+    }
+  }, [number, utils]);
 
   // React-hook-form
   const [showInput, setShowInput] = useState(false);
@@ -96,12 +99,7 @@ const TodoList = () => {
         <div className="mt-5 grid gap-5" ref={todosRef}>
           {todos?.map((todo) => (
             <Fragment key={todo.id}>
-              <TodoItem
-                todo={todo}
-                deleteTodo={deleteTodo}
-                checkedTodos={checkedTodos}
-                toggleTodo={toggleTodo}
-              />
+              <TodoItem todo={todo} deleteTodo={deleteTodo} />
             </Fragment>
           ))}
         </div>
@@ -148,14 +146,29 @@ const TodoList = () => {
             </div>
           </Fragment>
         ) : (
-          <div
-            role="button"
-            aria-label="add todo"
-            className="flex cursor-pointer items-center space-x-2"
-            onClick={() => setShowInput(true)}
-          >
-            <PlusIcon className="aspect-square w-5 text-red-400" />
-            <p className="text-xs text-gray-400 md:text-sm">Add todo</p>
+          <div className="flex items-center justify-between gap-5">
+            <div
+              role="button"
+              aria-label="add todo"
+              className="flex cursor-pointer items-center space-x-2"
+              onClick={() => setShowInput(true)}
+            >
+              <PlusIcon
+                aria-hidden="true"
+                className="aspect-square w-5 text-red-400"
+              />
+              <p className="text-xs text-gray-400 md:text-sm">Add todo</p>
+            </div>
+            {todos.some((todo) => todo.completed) && (
+              <div
+                role="button"
+                aria-label="delete completed todos"
+                className="flex cursor-pointer items-center space-x-2 text-xs text-gray-400 transition-opacity hover:opacity-80 active:opacity-100 md:text-sm"
+                onClick={() => deleteCompletedTodos()}
+              >
+                Delete completed
+              </div>
+            )}
           </div>
         )}
       </form>
@@ -168,17 +181,32 @@ export default TodoList;
 type TodoItemProps = {
   todo: Todo;
   deleteTodo: ({ id }: { id: string }) => void;
-  checkedTodos: Todo[];
-  toggleTodo: ({ id, checked }: { id: string; checked: boolean }) => void;
 };
 
-const TodoItem = ({
-  todo,
-  deleteTodo,
-  checkedTodos,
-  toggleTodo,
-}: TodoItemProps) => {
+const TodoItem = ({ todo, deleteTodo }: TodoItemProps) => {
   const [isHoverd, setIsHoverd] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  // trpc
+  const utils = trpc.useContext();
+  const { mutateAsync: editTodo } = trpc.todo.edit.useMutation({
+    onMutate: async ({ id, data }) => {
+      await utils.todo.all.cancel();
+      const allTodos = utils.todo.all.getData();
+      if (!allTodos) return;
+      utils.todo.all.setData(
+        undefined,
+        allTodos.map((todo) =>
+          todo.id === id
+            ? {
+                ...todo,
+                ...data,
+              }
+            : todo
+        )
+      );
+    },
+  });
 
   return (
     <div
@@ -192,19 +220,23 @@ const TodoItem = ({
           id="progress"
           type="checkbox"
           className="focus:ring-none cursor-pointer rounded-full border-2 bg-transparent"
-          onChange={() =>
-            toggleTodo({
+          checked={todo.completed}
+          onChange={(e) => {
+            const checked = e.currentTarget.checked;
+            editTodo({
               id: todo.id,
-              checked: checkedTodos.some((item) => item.id === todo.id)
-                ? false
-                : true,
-            })
-          }
+              data: { completed: checked },
+            });
+          }}
+          autoFocus={isEditing}
         />
         <p
           className={`${
-            todo.checked && "line-through"
+            todo.completed && "line-through"
           } text-xs line-clamp-1 md:text-sm`}
+          onDoubleClick={() => {
+            setIsEditing(true);
+          }}
         >
           {todo.label}
         </p>
