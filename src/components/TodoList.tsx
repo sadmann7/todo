@@ -96,14 +96,12 @@ const TodoList = () => {
 
   return (
     <section
-      aria-label="todo wrapper"
+      aria-label="todo section"
+      aria-keyshortcuts="Ctrl + Alt + A"
       className="mx-auto flex w-[89vw] max-w-screen-sm flex-col"
     >
       <p className="text-center text-sm font-semibold italic md:text-base">
-        Press{" "}
-        <span className="text-red-400">
-          {"Ctrl"} + {"Alt"} + {"A"}
-        </span>{" "}
+        Press <span className="text-red-400">{` Ctrl + Alt + A `}</span>
         to add todo
       </p>
       {status === "loading" ? (

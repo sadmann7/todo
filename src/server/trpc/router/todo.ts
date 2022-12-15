@@ -2,9 +2,9 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 
 export const todoRouter = router({
-  all: protectedProcedure.query(({ ctx }) => {
+  all: protectedProcedure.query(async ({ ctx }) => {
     const { prisma } = ctx;
-    return prisma.todo.findMany();
+    return await prisma.todo.findMany();
   }),
 
   add: protectedProcedure
