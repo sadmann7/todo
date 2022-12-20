@@ -2,9 +2,8 @@ import { z } from "zod";
 import { protectedProcedure, router } from "../trpc";
 
 export const todoRouter = router({
-  all: protectedProcedure.query(async ({ ctx }) => {
-    const { prisma } = ctx;
-    return await prisma.todo.findMany();
+  all: protectedProcedure.query(({ ctx }) => {
+    return ctx.prisma.todo.findMany();
   }),
 
   add: protectedProcedure
@@ -18,6 +17,22 @@ export const todoRouter = router({
           label,
           creator: { connect: { id: userId } },
         },
+      });
+      return todo;
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        completed: z.boolean().optional(),
+        label: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const todo = await ctx.prisma.todo.update({
+        where: { id: input.id },
+        data: { completed: !input.completed, label: input.label },
       });
       return todo;
     }),

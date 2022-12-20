@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { useIsMutating } from "@tanstack/react-query";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-// images import
+// images imports
 import {
   PencilSquareIcon,
   PlusIcon,
@@ -48,7 +48,7 @@ const TodoList = () => {
       },
     });
 
-  // Refetch todos
+  // refetch todos
   const number = useIsMutating();
   useEffect(() => {
     if (number === 0) {
@@ -56,7 +56,7 @@ const TodoList = () => {
     }
   }, [number, utils]);
 
-  // React-hook-form
+  // react-hook-form
   const [showInput, setShowInput] = useState(false);
   const {
     register,
@@ -79,7 +79,7 @@ const TodoList = () => {
   const [todosRef] = useAutoAnimate<HTMLUListElement>();
   const [formRef] = useAutoAnimate<HTMLFormElement>();
 
-  // Toggle ShowInput via keyboard shortcut
+  // toggle showInput via keyboard shortcut
   useEffect(() => {
     const handleKeydown = (e: KeyboardEvent) => {
       if (e.key === "a" && e.altKey && (e.ctrlKey || e.metaKey)) {
