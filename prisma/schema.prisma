@@ -21,12 +21,12 @@ model Todo {
   id        String   @id @default(cuid())
   label     String
   completed Boolean  @default(false)
-  creator   User     @relation(fields: [creatorId], references: [id], onDelete: Cascade)
-  creatorId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index([creatorId])
+  @@index([userId])
 }
 
 // Necessary for Next auth

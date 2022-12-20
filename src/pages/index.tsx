@@ -1,12 +1,12 @@
-import { type NextPage } from "next";
 import Head from "next/head";
-import React from "react";
+import { type NextPageWithLayout } from "./_app";
 
 // components import
 import Navbar from "@/components/layouts/Navbar";
 import TodoList from "@/components/TodoList";
+import DefaultLayout from "@/components/layouts/DefaultLayout";
 
-const Home: NextPage = () => {
+const Home: NextPageWithLayout = () => {
   return (
     <>
       <Head>
@@ -23,3 +23,5 @@ const Home: NextPage = () => {
 };
 
 export default Home;
+
+Home.getLayout = (page) => <DefaultLayout>{page}</DefaultLayout>;

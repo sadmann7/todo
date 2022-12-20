@@ -20,34 +20,32 @@ type Inputs = {
 const TodoList = () => {
   // trpc
   const utils = trpc.useContext();
-  const [todos, setTodos] = useState<Todo[]>([]);
-
-  const { data: allTodos, status } = trpc.todo.all.useQuery(undefined, {
+  // all todos
+  const { data: todos, status } = trpc.todo.all.useQuery(undefined, {
     staleTime: 3000,
   });
-  useEffect(() => {
-    if (!allTodos) return;
-    setTodos(allTodos);
-  }, [allTodos]);
-
+  // add todo
   const { mutateAsync: addTodo } = trpc.todo.add.useMutation({
-    onSuccess: async (todo) => {
+    onMutate: async () => {
       await utils.todo.all.cancel();
-      setTodos([...todos, todo]);
-      toast.success("Todo added.");
+      const allTodos = todos ?? [];
+      utils.todo.all.setData(undefined, [...allTodos]);
+      toast.success("Todo added!");
     },
+    onError: async (e) => toast.error(e.message),
   });
-
-  const { mutateAsync: deleteCompletedTodos } =
-    trpc.todo.deleteCompleted.useMutation({
-      onMutate: async () => {
-        await utils.todo.all.cancel();
-        const newTodos = todos.filter((todo) => !todo.completed);
-        setTodos(newTodos);
-        toast.success("Completed todos deleted.");
-      },
-    });
-
+  // delete completed todos
+  const { mutateAsync: deleteTodos } = trpc.todo.deleteMany.useMutation({
+    onMutate: async () => {
+      await utils.todo.all.cancel();
+      const allTodos = utils.todo.all.getData();
+      if (!allTodos) return;
+      const newTodos = allTodos.filter((todo) => !todo.completed);
+      utils.todo.all.setData(undefined, newTodos);
+      toast.success("Todos deleted!");
+    },
+    onError: async (e) => toast.error(e.message),
+  });
   // refetch todos
   const number = useIsMutating();
   useEffect(() => {
@@ -66,11 +64,11 @@ const TodoList = () => {
     reset,
   } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    console.log(data);
-    addTodo({ label: data.todo });
+    addTodo(data.todo);
     setShowInput(false);
     reset();
   };
+  // setFocus on showInput change
   useEffect(() => {
     setFocus("todo");
   }, [setFocus, showInput]);
@@ -170,12 +168,12 @@ const TodoList = () => {
               />
               <p className="text-xs text-gray-400 md:text-sm">Add todo</p>
             </div>
-            {todos.some((todo) => todo.completed) && (
+            {todos?.some((todo) => todo.completed) && (
               <div
                 role="button"
                 aria-label="delete completed todos"
                 className="flex cursor-pointer items-center space-x-2 text-xs text-gray-400 transition-opacity hover:opacity-80 active:opacity-100 md:text-sm"
-                onClick={() => deleteCompletedTodos()}
+                onClick={() => deleteTodos()}
               >
                 Delete completed
               </div>
@@ -200,36 +198,29 @@ const TodoItem = ({ todo }: TodoItemProps) => {
 
   // trpc
   const utils = trpc.useContext();
-
-  const { mutateAsync: editTodo } = trpc.todo.edit.useMutation({
-    onMutate: async ({ id, data }) => {
+  // update todo
+  const { mutateAsync: updateTodo } = trpc.todo.update.useMutation({
+    onMutate: async ({ id, completed, label }) => {
       await utils.todo.all.cancel();
-      const allTodos = utils.todo.all.getData();
-      if (!allTodos) return;
-      utils.todo.all.setData(
-        undefined,
-        allTodos.map((todo) =>
-          todo.id === id
-            ? {
-                ...todo,
-                ...data,
-              }
-            : todo
-        )
+      const allTodos = utils.todo.all.getData() ?? [];
+      const newTodos = allTodos.map((todo) =>
+        todo.id === id ? { ...todo, completed, label } : todo
       );
-      toast.success("Todo updated.");
+      utils.todo.all.setData(undefined, newTodos as Todo[]);
+      toast.success("Todo updated!");
     },
+    onError: async (e) => toast.error(e.message),
   });
-
+  // delete todo
   const { mutateAsync: deleteTodo } = trpc.todo.delete.useMutation({
-    onMutate: async ({ id }) => {
+    onMutate: async (id) => {
       await utils.todo.all.cancel();
-      const allTodos = utils.todo.all.getData();
-      if (!allTodos) return;
+      const allTodos = utils.todo.all.getData() ?? [];
       const newTodos = allTodos.filter((todo) => todo.id !== id);
       utils.todo.all.setData(undefined, newTodos);
-      toast.success("Todo deleted.");
+      toast.success("Todo deleted!");
     },
+    onError: async (e) => toast.error(e.message),
   });
 
   return (
@@ -252,9 +243,10 @@ const TodoItem = ({ todo }: TodoItemProps) => {
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && todoLabel.length > 0) {
-                editTodo({
+                updateTodo({
                   id: todo.id,
-                  data: { label: todoLabel },
+                  completed: todo.completed,
+                  label: todo.label,
                 });
                 setIsEditing(false);
               }
@@ -281,10 +273,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
                     : "cursor-not-allowed"
                 } rounded-md bg-green-500 px-4 py-1.5 text-xs font-medium md:text-sm`}
                 onClick={() => {
-                  editTodo({
-                    id: todo.id,
-                    data: { label: todoLabel },
-                  });
+                  updateTodo({ id: todo.id, label: todo.label });
                   setIsEditing(false);
                 }}
                 disabled={todoLabel.length <= 0}
@@ -304,10 +293,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
             checked={todo.completed}
             onChange={(e) => {
               const checked = e.currentTarget.checked;
-              editTodo({
-                id: todo.id,
-                data: { completed: checked },
-              });
+              updateTodo({ id: todo.id, completed: checked });
             }}
             autoFocus={isEditing}
           />
@@ -332,7 +318,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
             role="button"
             aria-label="delete todo"
             className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300 active:text-gray-400"
-            onClick={() => deleteTodo({ id: todo.id })}
+            onClick={() => deleteTodo(todo.id)}
           />
         </div>
       )}
