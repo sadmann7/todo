@@ -4,7 +4,9 @@ import { protectedProcedure, router } from "../trpc";
 
 export const todoRouter = router({
   all: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.prisma.todo.findMany();
+    return await ctx.prisma.todo.findMany({
+      orderBy: { createdAt: "asc" },
+    });
   }),
 
   add: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {

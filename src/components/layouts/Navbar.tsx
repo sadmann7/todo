@@ -3,6 +3,7 @@ import Image from "next/image";
 import React from "react";
 import { Menu, Transition } from "@headlessui/react";
 import { Fragment } from "react";
+import Link from "next/link";
 
 // images import
 import {
@@ -10,7 +11,6 @@ import {
   CheckBadgeIcon,
   UserCircleIcon,
 } from "@heroicons/react/20/solid";
-import Link from "next/link";
 
 const Navbar = () => {
   const { data: session } = useSession();
@@ -51,22 +51,26 @@ const Navbar = () => {
               <Menu.Items className="absolute right-0 mt-1 w-40 origin-top-right rounded-md bg-gray-600 p-1 text-xs shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none md:text-sm">
                 <Menu.Item>
                   {({ active }) => (
-                    <button
-                      className={`${
-                        active ? "bg-black/20" : "bg-transparent"
-                      } group flex w-full items-center rounded-md px-2 py-2`}
-                    >
-                      <UserCircleIcon
-                        className="mr-2 h-5 w-5"
-                        aria-hidden="true"
-                      />
-                      {session?.user?.name}
-                    </button>
+                    <Link href={"/dashboard/account"}>
+                      <button
+                        aria-label="navigate to account page"
+                        className={`${
+                          active ? "bg-black/20" : "bg-transparent"
+                        } group flex w-full items-center rounded-md px-2 py-2`}
+                      >
+                        <UserCircleIcon
+                          className="mr-2 h-5 w-5"
+                          aria-hidden="true"
+                        />
+                        {session?.user?.name}
+                      </button>
+                    </Link>
                   )}
                 </Menu.Item>
                 <Menu.Item>
                   {({ active }) => (
                     <button
+                      aria-label="sign out"
                       className={`${
                         active ? "bg-black/20" : "bg-transparent"
                       } group flex w-full items-center rounded-md px-2 py-2`}
@@ -85,6 +89,7 @@ const Navbar = () => {
           </Menu>
         ) : (
           <button
+            aria-label="sign in"
             className="rounded-full bg-white/25 px-5 py-1.5 text-sm font-semibold text-white no-underline transition hover:bg-white/30 active:bg-white/20 md:text-base"
             onClick={() => signIn()}
           >

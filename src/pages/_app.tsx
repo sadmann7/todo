@@ -1,4 +1,5 @@
 import type { AppProps, AppType } from "next/app";
+import Head from "next/head";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
@@ -32,6 +33,9 @@ const MyApp: AppType<{ session: Session | null }> = ({
   return (
     <SessionProvider session={session}>
       <ReactQueryDevtools initialIsOpen={false} />
+      <Head>
+        <title>Todo</title>
+      </Head>
       {getLayout(<Component {...pageProps} />)}
       <ToastWrapper />
     </SessionProvider>

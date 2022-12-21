@@ -125,7 +125,7 @@ const TodoList = () => {
               id="todo"
               type="text"
               placeholder="Type todo..."
-              className="w-full rounded-md bg-black/50 px-4"
+              className="w-full rounded-sm bg-black/50 px-4"
               {...register("todo", { required: true })}
             />
             <div className="mt-3 flex">
@@ -133,7 +133,7 @@ const TodoList = () => {
                 <div
                   role="button"
                   aria-label="cancel"
-                  className="cursor-pointer rounded-md bg-red-500 px-4 py-1.5 text-xs font-medium transition-opacity hover:bg-opacity-75 active:opacity-100 md:text-sm"
+                  className="w-fit cursor-pointer rounded-sm bg-red-500 px-4 py-1.5 text-xs font-medium transition-opacity hover:bg-opacity-80 active:bg-opacity-100 md:text-sm"
                   onClick={() => setShowInput(false)}
                 >
                   Cancel
@@ -142,10 +142,8 @@ const TodoList = () => {
                   type="submit"
                   aria-label="add todo"
                   className={`${
-                    isValid
-                      ? "cursor-pointer transition-opacity hover:bg-opacity-75 active:opacity-100"
-                      : "cursor-not-allowed"
-                  } rounded-md bg-green-500 px-4 py-1.5 text-xs font-medium md:text-sm`}
+                    isValid ? "cursor-pointer " : "cursor-not-allowed"
+                  } w-fit rounded-sm bg-green-500 px-4 py-1.5 text-xs font-medium enabled:transition-opacity enabled:hover:bg-opacity-80 enabled:active:bg-opacity-100 md:text-sm`}
                   onClick={handleSubmit(onSubmit)}
                   disabled={!isValid}
                 >
