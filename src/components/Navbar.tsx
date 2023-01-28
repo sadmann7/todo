@@ -1,11 +1,10 @@
+import { Menu, Transition } from "@headlessui/react";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Image from "next/image";
-import React from "react";
-import { Menu, Transition } from "@headlessui/react";
-import { Fragment } from "react";
 import Link from "next/link";
+import { Fragment } from "react";
 
-// images import
+// imports: icons
 import {
   ArrowLeftOnRectangleIcon,
   CheckBadgeIcon,

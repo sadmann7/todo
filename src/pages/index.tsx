@@ -1,9 +1,9 @@
 import Head from "next/head";
 import { type NextPageWithLayout } from "./_app";
 
-// components import
+// imports: components, layouts
 import TodoList from "@/components/TodoList";
-import DefaultLayout from "@/components/layouts/DefaultLayout";
+import DefaultLayout from "@/layouts/DefaultLayout";
 
 const Home: NextPageWithLayout = () => {
   return (

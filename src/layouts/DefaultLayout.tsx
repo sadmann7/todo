@@ -3,8 +3,8 @@ import { useRouter } from "next/router";
 import { useEffect, type ReactNode } from "react";
 
 // components imports
-import Footer from "./Footer";
-import Navbar from "./Navbar";
+import Footer from "../components/Footer";
+import Navbar from "../components/Navbar";
 
 const DefaultLayout = ({ children }: { children: ReactNode }) => {
   const { status } = useSession();

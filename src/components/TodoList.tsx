@@ -1,12 +1,12 @@
+import { trpc } from "@/utils/trpc";
+import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { type Todo } from "@prisma/client";
+import { useIsMutating } from "@tanstack/react-query";
 import { Fragment, useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
-import { trpc } from "@/utils/trpc";
-import { type Todo } from "@prisma/client";
 import { toast } from "react-toastify";
-import { useIsMutating } from "@tanstack/react-query";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
 
-// images imports
+// imports: icons
 import {
   PencilSquareIcon,
   PlusIcon,

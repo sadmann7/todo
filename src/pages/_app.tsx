@@ -1,16 +1,16 @@
-import type { AppProps, AppType } from "next/app";
-import Head from "next/head";
+import "@/styles/globals.css";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { type NextPage } from "next";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
-import "@/styles/globals.css";
-import { trpc } from "../utils/trpc";
-import { type NextPage } from "next";
+import type { AppProps, AppType } from "next/app";
+import Head from "next/head";
 import type { ReactElement, ReactNode } from "react";
+import { trpc } from "../utils/trpc";
 
 // components imports
 import ToastWrapper from "@/components/ToastWrapper";
-import DefaultLayout from "@/components/layouts/DefaultLayout";
+import DefaultLayout from "@/layouts/DefaultLayout";
 
 export type NextPageWithLayout<P = Record<string, unknown>, IP = P> = NextPage<
   P,

@@ -1,7 +1,6 @@
-import DefaultLayout from "@/components/layouts/DefaultLayout";
+import DefaultLayout from "@/layouts/DefaultLayout";
 import { signOut, useSession } from "next-auth/react";
 import Head from "next/head";
-import React from "react";
 import { type NextPageWithLayout } from "../_app";
 
 const Account: NextPageWithLayout = () => {
