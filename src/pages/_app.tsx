@@ -8,7 +8,7 @@ import Head from "next/head";
 import type { ReactElement, ReactNode } from "react";
 import { trpc } from "../utils/trpc";
 
-// components imports
+// exteranl imports
 import ToastWrapper from "@/components/ToastWrapper";
 import DefaultLayout from "@/layouts/DefaultLayout";
 

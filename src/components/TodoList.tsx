@@ -6,7 +6,7 @@ import { Fragment, useEffect, useState } from "react";
 import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "react-toastify";
 
-// imports: icons
+// external imports
 import {
   PencilSquareIcon,
   PlusIcon,

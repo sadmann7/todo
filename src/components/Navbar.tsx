@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
 
-// imports: icons
+// external imports
 import {
   ArrowLeftOnRectangleIcon,
   CheckBadgeIcon,

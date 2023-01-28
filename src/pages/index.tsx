@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { type NextPageWithLayout } from "./_app";
 
-// imports: components, layouts
+// external imports
 import TodoList from "@/components/TodoList";
 import DefaultLayout from "@/layouts/DefaultLayout";
 
