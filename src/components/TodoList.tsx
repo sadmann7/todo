@@ -119,9 +119,7 @@ const TodoList = () => {
       </p>
       <ul className="mt-5 grid gap-5" ref={todosRef}>
         {todosQuery.data.map((todo) => (
-          <Fragment key={todo.id}>
-            <TodoItem todo={todo} />
-          </Fragment>
+          <TodoItem todo={todo} key={todo.id} />
         ))}
       </ul>
       <form
@@ -197,13 +195,12 @@ const TodoList = () => {
 export default TodoList;
 
 const TodoItem = ({ todo }: { todo: Todo }) => {
+  const utils = trpc.useContext();
   const [isHoverd, setIsHoverd] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [todoLabel, setTodoLabel] = useState(todo.label);
 
-  // trpc
-  const utils = trpc.useContext();
-  // update todo
+  // update todo mutation
   const updateTodoMutation = trpc.todo.update.useMutation({
     onMutate: async ({ id, completed, label }) => {
       await utils.todo.all.cancel();
@@ -216,7 +213,8 @@ const TodoItem = ({ todo }: { todo: Todo }) => {
     },
     onError: async (e) => toast.error(e.message),
   });
-  // delete todo
+
+  // delete todo mutation
   const deleteTodoMutation = trpc.todo.delete.useMutation({
     onMutate: async (id) => {
       await utils.todo.all.cancel();
