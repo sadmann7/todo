@@ -32,7 +32,7 @@ const Account: NextPageWithLayout = () => {
             <Link
               aria-label="sign out"
               href="/api/auth/signout"
-              className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600"
+              className="mt-4 rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-600 active:bg-blue-500"
             >
               Sign out
             </Link>
