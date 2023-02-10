@@ -1,5 +1,5 @@
 import { Menu, Transition } from "@headlessui/react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import { Fragment } from "react";
@@ -12,22 +12,27 @@ import {
 } from "@heroicons/react/20/solid";
 
 const Navbar = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   return (
     <nav
       aria-label="navbar"
       className="fixed top-0 left-0 z-20 flex w-full items-center gap-4 bg-violet-500 py-2"
     >
-      <div className="mx-auto flex w-[89vw] max-w-screen-xl items-center justify-between">
+      <div className="mx-auto flex w-[89vw] max-w-screen-lg items-center justify-between">
         <Link
+          aria-label="navigate to home page"
           href="/"
           className="gap-1.5text-base flex items-center gap-1.5 font-mono transition-opacity hover:opacity-80 active:opacity-100 md:text-lg"
         >
           <CheckBadgeIcon className="aspect-square w-5" aria-hidden="true" />
           Todo
         </Link>
-        {session?.user ? (
+        {status === "loading" ? (
+          <div className="rounded-full bg-white/25 px-5 py-1.5 text-sm font-semibold text-white no-underline transition hover:bg-white/30 active:bg-white/20 md:text-base">
+            Loading...
+          </div>
+        ) : session?.user ? (
           <Menu as="div" className="relative inline-block">
             <Menu.Button className="rounded-full ring-2 ring-white/75 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
               <Image
@@ -87,13 +92,13 @@ const Navbar = () => {
             </Transition>
           </Menu>
         ) : (
-          <button
+          <Link
             aria-label="sign in"
+            href="/api/auth/signin"
             className="rounded-full bg-white/25 px-5 py-1.5 text-sm font-semibold text-white no-underline transition hover:bg-white/30 active:bg-white/20 md:text-base"
-            onClick={() => signIn()}
           >
             Sign in
-          </button>
+          </Link>
         )}
       </div>
     </nav>

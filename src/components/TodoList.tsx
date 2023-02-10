@@ -7,6 +7,8 @@ import { useForm, type SubmitHandler } from "react-hook-form";
 import { toast } from "react-toastify";
 
 // external imports
+import ErrorScreen from "@/Screens/ErrorScreen";
+import LoadingScreen from "@/Screens/LoadingScreen";
 import {
   PencilSquareIcon,
   PlusIcon,
@@ -18,24 +20,28 @@ type Inputs = {
 };
 
 const TodoList = () => {
-  // trpc
   const utils = trpc.useContext();
-  // all todos
-  const { data: todos, status } = trpc.todo.all.useQuery(undefined, {
+  // todos query
+  const todosQuery = trpc.todo.all.useQuery(undefined, {
     staleTime: 3000,
   });
-  // add todo
-  const { mutateAsync: addTodo } = trpc.todo.add.useMutation({
+
+  // add todo mutation
+  const addTodoMutation = trpc.todo.add.useMutation({
     onMutate: async () => {
       await utils.todo.all.cancel();
-      const allTodos = todos ?? [];
-      utils.todo.all.setData(undefined, [...allTodos]);
+
+      utils.todo.all.setData(undefined, (oldTodos) => {
+        if (!oldTodos) return;
+        return [...oldTodos];
+      });
       toast.success("Todo added!");
     },
     onError: async (e) => toast.error(e.message),
   });
-  // delete completed todos
-  const { mutateAsync: deleteTodos } = trpc.todo.deleteMany.useMutation({
+
+  // delete todos mutation
+  const deleteTodosMutation = trpc.todo.deleteMany.useMutation({
     onMutate: async () => {
       await utils.todo.all.cancel();
       const allTodos = utils.todo.all.getData();
@@ -46,6 +52,7 @@ const TodoList = () => {
     },
     onError: async (e) => toast.error(e.message),
   });
+
   // refetch todos
   const number = useIsMutating();
   useEffect(() => {
@@ -64,7 +71,7 @@ const TodoList = () => {
     reset,
   } = useForm<Inputs>();
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    addTodo(data.todo);
+    addTodoMutation.mutateAsync(data.todo);
     setShowInput(false);
     reset();
   };
@@ -92,6 +99,14 @@ const TodoList = () => {
     return () => document.removeEventListener("keydown", handleKeydown);
   }, [showInput]);
 
+  if (todosQuery.isLoading) {
+    return <LoadingScreen />;
+  }
+
+  if (todosQuery.error) {
+    return <ErrorScreen error={todosQuery.error} />;
+  }
+
   return (
     <section
       aria-label="todo section"
@@ -102,17 +117,13 @@ const TodoList = () => {
         Press <span className="text-red-400">{` Ctrl + Alt + A `}</span>
         to add todo
       </p>
-      {status === "loading" ? (
-        <p className="mt-5 text-sm md:text-base">Loading todos...</p>
-      ) : (
-        <ul className="mt-5 grid gap-5" ref={todosRef}>
-          {todos?.map((todo) => (
-            <Fragment key={todo.id}>
-              <TodoItem todo={todo} />
-            </Fragment>
-          ))}
-        </ul>
-      )}
+      <ul className="mt-5 grid gap-5" ref={todosRef}>
+        {todosQuery.data.map((todo) => (
+          <Fragment key={todo.id}>
+            <TodoItem todo={todo} />
+          </Fragment>
+        ))}
+      </ul>
       <form
         aria-label="todo_form"
         className="mt-5"
@@ -166,12 +177,12 @@ const TodoList = () => {
               />
               <p className="text-xs text-gray-400 md:text-sm">Add todo</p>
             </div>
-            {todos?.some((todo) => todo.completed) && (
+            {todosQuery.data.some((todo) => todo.completed) && (
               <div
                 role="button"
                 aria-label="delete completed todos"
                 className="flex cursor-pointer items-center space-x-2 text-xs text-gray-400 transition-opacity hover:opacity-80 active:opacity-100 md:text-sm"
-                onClick={() => deleteTodos()}
+                onClick={() => deleteTodosMutation.mutateAsync()}
               >
                 Delete completed
               </div>
@@ -185,11 +196,7 @@ const TodoList = () => {
 
 export default TodoList;
 
-type TodoItemProps = {
-  todo: Todo;
-};
-
-const TodoItem = ({ todo }: TodoItemProps) => {
+const TodoItem = ({ todo }: { todo: Todo }) => {
   const [isHoverd, setIsHoverd] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [todoLabel, setTodoLabel] = useState(todo.label);
@@ -197,7 +204,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
   // trpc
   const utils = trpc.useContext();
   // update todo
-  const { mutateAsync: updateTodo } = trpc.todo.update.useMutation({
+  const updateTodoMutation = trpc.todo.update.useMutation({
     onMutate: async ({ id, completed, label }) => {
       await utils.todo.all.cancel();
       const allTodos = utils.todo.all.getData() ?? [];
@@ -210,7 +217,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
     onError: async (e) => toast.error(e.message),
   });
   // delete todo
-  const { mutateAsync: deleteTodo } = trpc.todo.delete.useMutation({
+  const deleteTodoMutation = trpc.todo.delete.useMutation({
     onMutate: async (id) => {
       await utils.todo.all.cancel();
       const allTodos = utils.todo.all.getData() ?? [];
@@ -241,7 +248,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
             }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && todoLabel.length > 0) {
-                updateTodo({
+                updateTodoMutation.mutateAsync({
                   id: todo.id,
                   completed: todo.completed,
                   label: todo.label,
@@ -271,7 +278,10 @@ const TodoItem = ({ todo }: TodoItemProps) => {
                     : "cursor-not-allowed"
                 } rounded-md bg-green-500 px-4 py-1.5 text-xs font-medium md:text-sm`}
                 onClick={() => {
-                  updateTodo({ id: todo.id, label: todo.label });
+                  updateTodoMutation.mutateAsync({
+                    id: todo.id,
+                    label: todo.label,
+                  });
                   setIsEditing(false);
                 }}
                 disabled={todoLabel.length <= 0}
@@ -291,7 +301,10 @@ const TodoItem = ({ todo }: TodoItemProps) => {
             checked={todo.completed}
             onChange={(e) => {
               const checked = e.currentTarget.checked;
-              updateTodo({ id: todo.id, completed: checked });
+              updateTodoMutation.mutateAsync({
+                id: todo.id,
+                completed: checked,
+              });
             }}
             autoFocus={isEditing}
           />
@@ -316,7 +329,7 @@ const TodoItem = ({ todo }: TodoItemProps) => {
             role="button"
             aria-label="delete todo"
             className="aspect-square w-5 text-gray-400 transition-colors hover:text-gray-300 active:text-gray-400"
-            onClick={() => deleteTodo(todo.id)}
+            onClick={() => deleteTodoMutation.mutateAsync(todo.id)}
           />
         </div>
       )}
