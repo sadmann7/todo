@@ -23,9 +23,10 @@ const Account: NextPageWithLayout = () => {
             <Image
               src={session?.user?.image as string}
               alt={session?.user?.name as string}
-              className="h-20 w-20 rounded-full"
               width={80}
               height={80}
+              className="h-auto w-20 rounded-full ring-2 ring-white"
+              priority
             />
             <h1 className="mt-2 text-2xl font-bold">{session?.user?.name}</h1>
             <p className="mt-2 text-base md:text-sm">{session?.user?.email}</p>
