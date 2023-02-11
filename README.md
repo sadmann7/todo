@@ -1,6 +1,6 @@
 # [Todo](https://todo-violet.vercel.app/)
 
-This is a simple todo app bootstrapped with the [T3 Stack](https://create.t3.gg/).
+This is a todo app bootstrapped with the [T3 Stack](https://create.t3.gg/).
 
 [![Todo](./public/screenshot.png)](https://todo-violet.vercel.app/)
 
@@ -22,7 +22,7 @@ This is a simple todo app bootstrapped with the [T3 Stack](https://create.t3.gg/
 ### 1. Clone the repository
 
 ```bash
-git clone <repository url>
+git clone https://github.com/sadmann7/todo.git
 ```
 
 ### 2. Install dependencies
