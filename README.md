@@ -1,6 +1,6 @@
 # [Todo](https://todo-violet.vercel.app/)
 
-This is a todo app bootstrapped with the [T3 Stack](https://create.t3.gg/).
+This project is a todo app bootstrapped with the [T3 Stack](https://create.t3.gg/).
 
 [![Todo](./public/screenshot.png)](https://todo-violet.vercel.app/)
 
